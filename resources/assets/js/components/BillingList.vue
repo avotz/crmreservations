@@ -1,0 +1,332 @@
+<template>
+	<div>
+		<div class="content">
+			<h2>Billing</h2>
+		</div>
+		<div class="panel filters">
+			<div class="panel-heading">
+				Search
+			</div>
+			<div class="panel-block">
+				
+		        <div class="field is-horizontal" >
+
+	                <div class="field-body">
+	                	<div class="field has-addons">
+					      <div class="control">
+					        <VueFlatpickr :options="fpOptions" v-model="date1" @blur="errors.date1 = []" @change="selectDate"  placeholder="Select Date.." />
+
+          
+					         <!--  <span class="icon is-small clear-date">
+						        <i class="fa fa-calendar"></i>
+						      </span>  -->
+					      </div>
+					       <div class="control">
+							    <a class="button is-info" @click="clearDate1">
+							      X
+							    </a>
+						  </div>
+					    </div>
+					    <div class="field has-addons">
+					      <div class="control">
+					        <VueFlatpickr :options="fpOptions" v-model="date2" @blur="errors.date2 = []" @change="selectDate"  placeholder="Select Date.." />
+
+          
+					         <!--  <span class="icon is-small clear-date">
+						        <i class="fa fa-calendar"></i>
+						      </span>  -->
+					      </div>
+					       <div class="control">
+							    <a class="button is-info" @click="clearDate2">
+							      X
+							    </a>
+						  </div>
+					    </div>
+					    <div class="field is-grouped">
+					      <div class="control is-expanded has-icon">
+					         <v-select :debounce="250"
+	                            :on-search="getHotels"
+	                            :options="optionsHotels"
+	                            :value.sync="selectedHotel" 
+	                            :on-change="selectHotel"
+	                            placeholder="Search Hotel..."
+	                            label="name"></v-select>
+					      </div>
+					    </div>
+					    <div class="field is-grouped">
+					      <div class="control is-expanded has-icon">
+					        <input type="text" name="q" class="input" placeholder="..." v-model="search" @keyup="onSearch">
+					         <span class="icon is-small">
+						        <i class="fa fa-search"></i>
+						      </span>
+					      </div>
+					    </div>
+
+					   
+					    
+					    
+					 </div>
+		              
+		          
+		        </div>
+
+			</div>
+		</div>
+	   <div id="no-more-tables">
+		   <table class="table">
+			  <thead>
+			    <tr>
+			      
+			      <th>Date</th>
+			      <th><abbr title="Important">Important</abbr></th>
+			      <th><abbr title="Client">Client</abbr></th>
+			      <th><abbr title="People">People</abbr></th>
+			      <th><abbr title="rate">Rate</abbr></th>
+			      <th>Total</th>
+			      <th><abbr title="Hidden notes">Hidden notes</abbr></th>
+			      <th><abbr title="Notes">Notes</abbr></th>
+			      <th></th>
+			    </tr>
+			  </thead>
+			  
+			  <tbody>
+			    <tr v-for="item in data.data" class="color-reservation" :class="'is-'+getServiceColor(item.service_color)">
+			      <td data-title="Date"><a href="#" :title=" item.date ">{{ item.date }}</a>
+			      </td>
+			     
+			      <td data-title="Important">
+
+			      	
+			      	<div v-if="item.status != -1">
+			      		<div v-if="item.assigned == 1">
+			      			<span class="tag is-success">Assigned</span>
+			      		</div>
+			      		<div v-else>
+			      			<span class="tag is-danger" v-if="item.last_minute == 1">Last minute</span> <span class="tag is-default" v-else>None</span>
+			      			
+			      		</div>
+			      	</div>
+			      	<div v-else>
+			      		<span class="tag is-warning">Canceled</span>
+			      	</div>
+			      </td>
+			      <td data-title="Client">{{ item.customer_name }}</td>
+			      <td data-title="People">{{ parseInt(item.adults) + parseInt(item.children) }}</td>
+			      <td data-title="Rate">${{ item.rate }}</td>
+			      <td data-title="Total">
+					${{ item.price }} 
+					<!-- getTotal(parseInt(item.adults) + parseInt(item.children), item.rate)  -->
+					
+			      </td>
+			      <td data-title="Hidden notes">{{ item.hidden_notes }}</td>
+			      <td data-title="Notes">{{ item.notes }}</td>
+			      <td>
+			      	
+			      </td>
+			      
+			    </tr>
+			   
+			    
+			  </tbody>
+			</table>
+			<div class="total-info">
+				<span class="tag is-info is-large">Total: ${{ totalFinal }}</span> <span class="tag is-success is-large">Reservations: {{ data.total }}</span>
+				
+			</div>
+			
+			<nav class="pagination-bulma">
+				<laravel-pagination :data="data" v-on:pagination-change-page="getResults"></laravel-pagination >
+			</nav>
+		</div>
+	</div>
+</template>
+<script>
+
+   //import VuePaginator from 'vuejs-paginator'
+   import LaravelPagination from 'laravel-vue-pagination'
+   import VueFlatpickr from 'vue-flatpickr';
+   import 'vue-flatpickr/theme/airbnb.css';
+   import vSelect from 'vue-select'
+   
+ export default {
+        props: ['reservations','isAdmin'],
+       
+        components: {
+		    LaravelPagination: LaravelPagination,
+		    VueFlatpickr: VueFlatpickr,
+		    vSelect: vSelect
+		  },
+        data () {
+	        return {
+	          optionsHotels: [],
+              selectedHotel: null,
+	 		  data:{},
+	 		  search:"",
+	 		  date1:"",
+	 		  date2:"",
+	 		  hotel:"",
+	          //items:[],
+	          loader:false,
+	          service_color:['default','info','pink','success','warning','yellow','purple','success'],
+	          fpOptions:{
+                  //minDate:"today"
+                   onChange:this.selectDate,
+                   
+                },
+               totalFinal:0
+	         
+	          
+	        }
+	      },
+	      
+        methods: {
+        	 selectHotel(hotel) {
+  
+	            if(hotel){
+	              
+	               this.selectedHotel = hotel;
+	              
+	               this.hotel = hotel.name;
+
+	             
+	             
+	            }else{
+	            	this.hotel = '';
+	            }
+
+	            this.getResults();
+
+            
+          
+           },
+            getHotels:_.debounce(function(search,loading) {
+                 loading(true)
+
+              
+                  axios.get('/hotels/list',{
+                  params: {
+                    q: search
+                    
+                  }
+                }).then(response => {
+
+                  this.optionsHotels = response.data
+                  loading(false)
+                });
+              
+
+            }, 500),
+        	getTotal(people, rate){
+	            //let persons =parseInt((this.form.adults) ? this.form.adults : 0 ) + parseInt((this.form.children) ? this.form.children : 0);
+	            let total = rate * people;//(this.form.rate) ? this.form.rate : 0;
+	            
+	            return total;
+
+	          },
+	        
+        	clearDate1(){
+        		this.date1 = '';
+        		this.getResults();
+        	},
+        	clearDate2(){
+        		this.date2 = '';
+        		this.getResults();
+        	},
+        	
+        	selectDate(){
+        		 this.getResults();
+        	},
+        	getServiceColor(typeService) {
+        		return this.service_color[typeService];
+        	},
+        	 onSearch:_.debounce(function(search) {
+	           
+
+	         this.getResults();
+					
+
+		    }, 500),
+
+        	getResults(page) {
+				if (typeof page === 'undefined') {
+					page = 1;
+				}
+				
+
+				// Using vue-resource as an example
+				axios.get('/reservations/list?date1='+ this.date1 +'&date2='+ this.date2 +'&hotel='+ this.hotel +'&q='+ this.search +'&page=' + page).then((response) => {
+                    
+                      this.data = response.data.pagination;
+                      this.totalFinal = response.data.totalFinal;
+                      
+                      
+                    }, (response) => {
+                                console.log(response.data)
+                                //this.errors = response;
+                    });
+
+				
+			},
+	         edit(reservation) {
+			  
+	          	bus.$emit('editReservation', reservation);
+	          
+	        },//edit
+
+	        remove(item){
+	           
+	        	 axios.delete('/reservations/'+item.id).then((response) => {
+                	
+                	let index = this.data.data.indexOf(item)
+	                this.data.data.splice(index, 1);
+	               
+	                bus.$emit('alert', 'Reservation Deleted','success');
+	                // console.log(response);
+	                
+	                
+	              }, (response) => {
+	                          //console.log(response.data)
+	                          this.errors = response.response.data;
+	              });
+	           
+
+	          }, //remove
+
+	         cancel(item){
+
+	         	  axios.put('/reservations/'+ item.id + '/cancel', item ).then((response) => {
+                    
+                   
+                    
+                     this.getResults();
+                    
+                     bus.$emit('alert', 'Reservation Canceled','success');
+                     
+                     
+                    
+                  }, (response) => {
+                              // console.log(response.response.data)
+                              this.errors = response.response.data;
+                  });
+	           
+	        	 
+
+	          }, //cancel
+
+          	updateList(reservation){
+
+          		//this.items.push(reservation);
+          		this.getResults();
+          	}//addToList
+
+       	
+        },//methods
+        created() {
+          
+          //this.items = this.reservations;
+	      this.getResults();
+	      bus.$on('updateListReservations', this.updateList);
+	      
+	    }
+    }
+</script>
