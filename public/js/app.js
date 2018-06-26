@@ -13109,7 +13109,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         var people = 0;
 
         for (var i = this.travel.reservations.length - 1; i >= 0; i--) {
-          people += this.travel.reservations[i].adults + this.travel.reservations[i].children;
+          people += parseInt(this.travel.reservations[i].adults) + parseInt(this.travel.reservations[i].children);
         }
 
         this.total_people = people;
@@ -13153,7 +13153,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
         return r.id === _this2.travel.vehicle;
       });
 
-      this.max_capacity = vehicle.maximum_capacity;
+      this.max_capacity = parseInt(vehicle.maximum_capacity);
     },
     save: function save() {
       var _this3 = this;
@@ -13203,7 +13203,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       //bus.$emit('editReservation', reservation);
       this.travel.id = item.id;
       this.travel.vehicle = item.vehicles[0].id;
-      this.max_capacity = item.vehicles[0].maximum_capacity;
+      this.max_capacity = parseInt(item.vehicles[0].maximum_capacity);
       this.travel.reservations = item.reservations;
     },
     //edit

@@ -201,7 +201,7 @@
 	        		
 	        	
 	        		for (var i = this.travel.reservations.length - 1; i >= 0; i--) {
-	        			people += this.travel.reservations[i].adults + this.travel.reservations[i].children
+	        			people += parseInt(this.travel.reservations[i].adults) + parseInt(this.travel.reservations[i].children)
 	        		}
 	        		
 	        		this.total_people = people;
@@ -248,7 +248,7 @@
 
         		let vehicle = this.vehicles.find(r => r.id === this.travel.vehicle);
         		
-        		this.max_capacity = vehicle.maximum_capacity;
+        		this.max_capacity = parseInt(vehicle.maximum_capacity);
         	
         	},
         
@@ -307,7 +307,7 @@
 	          	//bus.$emit('editReservation', reservation);
 	          	this.travel.id = item.id;
 	          	this.travel.vehicle = item.vehicles[0].id;
-	          	this.max_capacity =   item.vehicles[0].maximum_capacity;
+	          	this.max_capacity =   parseInt(item.vehicles[0].maximum_capacity);
 	          	this.travel.reservations = item.reservations;
 	          
 	        },//edit
