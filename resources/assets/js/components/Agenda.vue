@@ -335,7 +335,7 @@
 	          }, //remove
         	getVehicles(){
         		axios.get('/vehicles/list').then((response) => {
-                      
+                     
                       this.vehicles = response.data;
                       
                     }, (response) => {
@@ -359,7 +359,7 @@
 				// Using vue-resource as an example
 				axios.get('/reservations/list?except=-1&assigned=0&q='+ this.search +'&page=' + page).then((response) => {
                       
-                     //debugger
+                    
                       
                       this.reservationsData = response.data;
                       this.reservations = response.data.pagination.data;
@@ -379,7 +379,7 @@
 
 				// Using vue-resource as an example
 				axios.get('/travels/list?page=' + page).then((response) => {
-                      
+                     
                      
                       
                       this.travelsData = response.data;

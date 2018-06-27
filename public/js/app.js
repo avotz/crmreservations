@@ -13255,8 +13255,6 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
       // Using vue-resource as an example
       axios.get('/reservations/list?except=-1&assigned=0&q=' + this.search + '&page=' + page).then(function (response) {
 
-        //debugger
-
         _this6.reservationsData = response.data;
         _this6.reservations = response.data.pagination.data;
       }, function (response) {
